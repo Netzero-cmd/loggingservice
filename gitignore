@@ -1,0 +1,66 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# TypeScript cache and declaration files
+typings/
+*.tsbuildinfo
+
+# Build and output directories
+dist/
+build/
+out/
+. next/  # For Next.js projects
+public/build/  # For projects using Webpack or similar
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pem
+
+# Coverage reports
+coverage/
+.nyc_output/
+
+# Optional tool caches
+.eslintcache
+.stylelintcache
+.npm
+.yarn/cache
+
+# Environment configuration files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE and editor files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+.DS_Store  # macOS-specific files
+
+# REPL history
+.node_repl_history
+
+# Other generated files
+npm-debug.log
+yarn-error.log
+package-lock.json  # Uncomment if you don't want to track lock files (not recommended)
+
+# Serverless or specific framework files (e.g., for AWS Lambda or Serverless)
+.serverless/
+.terragrunt-cache/
