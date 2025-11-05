@@ -1,5 +1,6 @@
 import ErrorService from "../services/error.service.js";
 
+
 class ErrorController {
     static async create(req, res) {
         try {
@@ -10,7 +11,6 @@ class ErrorController {
             res.status(500).json({ message: "Failed to insert error log" });
         }
     }
-
     static async search(req, res) {
         try {
             const result = await ErrorService.search(req.query);

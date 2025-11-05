@@ -1,19 +1,19 @@
-import DebugLog from "../models/debugLog.model.js";
+import dbWithTables from "../models/index.js";
 import BaseLogService from "./baseLog.service.js";
+const { WarnLog } = dbWithTables;
 
-export default class DebugService {
-    static async insert(payload, clientIp) {
+export default class WarnService {
+    static async insert(payload, clientIp, uuid) {
         const cleanBody = BaseLogService.sanitizeBody(payload.request_body);
-        return DebugLog.create({
+        return WarnLog.create({
             ...payload,
             request_body: cleanBody,
             client_ip: clientIp,
         });
     }
-
     static async search(filters) {
         const query = BaseLogService.buildFilters(filters);
-        const logs = await DebugLog.findAll(query);
+        const logs = await WarnLog.findAll(query);
         return { count: logs.length, logs };
     }
 }

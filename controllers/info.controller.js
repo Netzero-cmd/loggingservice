@@ -1,5 +1,4 @@
 import InfoService from "../services/info.service.js";
-
 class InfoController {
     static async create(req, res) {
         try {
@@ -10,7 +9,6 @@ class InfoController {
             res.status(500).json({ message: "Failed to insert info log" });
         }
     }
-
     static async search(req, res) {
         try {
             const result = await InfoService.search(req.query);
@@ -20,6 +18,7 @@ class InfoController {
             res.status(500).json({ message: "Failed to fetch info logs" });
         }
     }
+
 }
 
 export default InfoController;

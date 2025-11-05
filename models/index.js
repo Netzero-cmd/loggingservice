@@ -1,20 +1,25 @@
 import { getSequelize } from "../config/database.js";
-import UserTenant from "./userTenant.model.js";
 import InfoLog from "./infoLog.model.js";
 import ErrorLog from "./errorLog.model.js";
-import DebugLog from "./debugLog.model.js";
-
+import WarnLog from "./warnLog.model.js";
 const sequelize = getSequelize();
 
-// Define relationships
-UserTenant.hasMany(InfoLog, { foreignKey: "tenant_id" });
-UserTenant.hasMany(ErrorLog, { foreignKey: "tenant_id" });
-UserTenant.hasMany(DebugLog, { foreignKey: "tenant_id" });
+async function syncDatabase() {
+    try {
+        await InfoLog.sync({ alter: true })
+        console.log("✅ InfoLogs table synced.");
+        await ErrorLog.sync({ alter: true });
+        console.log("✅ ErrorLogs table synced.");
+        await WarnLog.sync({ alter: true });
+        console.log("✅ WarnLogs table synced.");
+        console.log("Database schema synchronization complete.");
+    } catch (error) {
+        console.error("❌ Database sync failed:", error);
+    }
+}
 
-InfoLog.belongsTo(UserTenant, { foreignKey: "tenant_id" });
-ErrorLog.belongsTo(UserTenant, { foreignKey: "tenant_id" });
-DebugLog.belongsTo(UserTenant, { foreignKey: "tenant_id" });
+syncDatabase();
 
 // Export and sync
-const db = { sequelize, UserTenant, InfoLog, ErrorLog, DebugLog };
-export default db;
+const dbWithTables = { sequelize, InfoLog, ErrorLog, WarnLog };
+export default dbWithTables;

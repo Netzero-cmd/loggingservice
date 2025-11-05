@@ -8,7 +8,8 @@ import { clientIpMiddleware } from "./middleware/clientIp.middleware.js";
 
 import infoRoutes from "./routes/info.routes.js";
 import errorRoutes from "./routes/error.routes.js";
-import debugRoutes from "./routes/debug.routes.js";
+import warnRoutes from "./routes/warn.routes.js";
+import activityRoutes from './routes/activity.routes.js';
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.use(cors());
 app.use(json());
 app.use(urlencoded({ extended: true }));
 app.use(clientIpMiddleware);
+
 if (process.env.NODE_ENV !== "production") app.use(morgan("dev"));
 
 // DB connect
@@ -26,7 +28,8 @@ await connectDb();
 // Base routes
 app.use("/logging/info", infoRoutes);
 app.use("/logging/error", errorRoutes);
-app.use("/logging/debug", debugRoutes);
+app.use("/logging/warn", warnRoutes);
+app.use('/logging/activity', activityRoutes);
 
 app.get("/health", (req, res) => res.json({ status: "UP", ip: req.clientIp }));
 
