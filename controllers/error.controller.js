@@ -5,7 +5,7 @@ class ErrorController {
     static async create(req, res) {
         try {
             const log = await ErrorService.insert(req.body, req.clientIp);
-            res.status(201).json({ message: "Error log created", id: log.error_id });
+            res.status(201).json({ message: "Error log created", id: log });
         } catch (error) {
             console.error("Error log insert error:", error);
             res.status(500).json({ message: "Failed to insert error log" });
