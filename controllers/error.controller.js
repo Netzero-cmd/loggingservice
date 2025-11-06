@@ -8,7 +8,7 @@ class ErrorController {
             res.status(201).json({ message: "Error log created", id: log });
         } catch (error) {
             console.error("Error log insert error:", error);
-            res.status(500).json({ message: "Failed to insert error log" });
+            res.status(500).json({ message: "Failed to Insert error log" });
         }
     }
     static async search(req, res) {

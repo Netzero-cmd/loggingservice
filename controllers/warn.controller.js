@@ -1,10 +1,9 @@
 import WarnService from "../services/warn.service.js";
-import { v4 as uuidv4 } from 'uuid';
 class WarnController {
     static async create(req, res) {
         try {
             const log = await WarnService.insert(req.body, req.clientIp);
-            res.status(201).json({ message: "Warn log created", id: log.debug_id });
+            res.status(201).json({ message: "Warn log created", id: log });
         } catch (error) {
             console.error("Debug log insert error:", error);
             res.status(500).json({ message: "Failed to insert debug log" });

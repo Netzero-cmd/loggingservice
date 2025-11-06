@@ -8,6 +8,8 @@ const WarnLog = sequelize.define("WarnLog", {
     user_id: { type: DataTypes.INTEGER, allowNull: false },
     service_name: DataTypes.STRING(150),
     action_name: DataTypes.STRING(150),
+    request_body: DataTypes.TEXT,
+    response_body: DataTypes.TEXT,
     message: DataTypes.TEXT,
     status_code: DataTypes.INTEGER,
     client_ip: DataTypes.STRING(50),

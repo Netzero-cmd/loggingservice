@@ -1,4 +1,3 @@
-import { Sequelize } from "sequelize";
 import dbWithTables from "../models/index.js";
 import BaseLogService from "./baseLog.service.js";
 
