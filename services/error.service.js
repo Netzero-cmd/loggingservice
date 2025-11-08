@@ -7,6 +7,9 @@ export default class ErrorService {
     static async insert(payload, clientIp) {
         try {
             const cleanBody = BaseLogService.sanitizeBody(payload.request_body);
+            if (payload.status_code < 400 || payload.status_code > 599) {
+                throw new Error("Invalid status code for ERROR log");
+            }
             const result = await sequelize.query(
                 `EXEC dbo.ErrorLog_Insert
                 @tenant_id = :tenant_id,
@@ -49,6 +52,7 @@ export default class ErrorService {
                 limit = 50,
                 offset = 0,
             } = filters;
+
             const replacements = {
                 tenant_id,
                 user_id,

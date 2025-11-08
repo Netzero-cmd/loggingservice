@@ -13,7 +13,6 @@ export default class ActivityService {
             order: [["createdAt", "DESC"]],
             limit: 1
         };
-
         try {
             const [lastInfoLog, lastWarningLog, lastErrorLog] = await Promise.all([
                 InfoLog.findOne(queryOptions),
@@ -34,23 +33,19 @@ export default class ActivityService {
     }
     static async searchAllLogs(filters = {}) {
         try {
-            const { where, limit = 50, offset = 0, order = [["createdAt", "DESC"]] } =
-                BaseLogService.buildFilters(filters);
+            const { where, limit = 50, offset = 0, order = [["createdAt", "DESC"]] } = BaseLogService.buildFilters(filters);
             const [infoLogs, warnLogs, errorLogs] = await Promise.all([
                 InfoLog.findAll({ where, limit, offset, order }),
                 WarnLog.findAll({ where, limit, offset, order }),
                 ErrorLog.findAll({ where, limit, offset, order })
             ]);
             const combined = [
-                ...infoLogs.map(l => ({ type: "INFO", ...l.get() })),
-                ...warnLogs.map(l => ({ type: "WARNING", ...l.get() })),
-                ...errorLogs.map(l => ({ type: "ERROR", ...l.get() }))
+                ...infoLogs.map(l => ({ type: "INFO", ...l.get() })), ...warnLogs.map(l => ({ type: "WARNING", ...l.get() })), ...errorLogs.map(l => ({ type: "ERROR", ...l.get() }))
             ];
             combined.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
             const paginated = combined.slice(offset, offset + limit);
             return {
-                count: combined.length,
-                logs: paginated
+                count: combined.length, logs: paginated
             };
         } catch (error) {
             console.error("Centralized log search failed:", error);

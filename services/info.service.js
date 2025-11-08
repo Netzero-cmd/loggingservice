@@ -9,6 +9,9 @@ export default class InfoService {
         try {
             const cleanBody = BaseLogService.sanitizeBody(payload.request_body);
             const cleanRes = BaseLogService.sanitizeBody(payload.response_body);
+            if (payload.status_code < 200 || payload.status_code > 299) {
+                throw new Error("Invalid status code for INFO log");
+            }
             const result = await sequelize.query(
                 `EXEC dbo.InfoLog_Insert
                 @tenant_id = :tenant_id,

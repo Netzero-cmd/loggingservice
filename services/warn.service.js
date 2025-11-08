@@ -7,6 +7,9 @@ export default class WarnService {
         try {
             const cleanBody = BaseLogService.sanitizeBody(payload.request_body);
             const cleanRes = BaseLogService.sanitizeBody(payload.response_body);
+            if (payload.status_code < 200 || payload.status_code > 399) {
+                throw new Error("Invalid status code for WARN log");
+            }
             const result = await sequelize.query(
                 `EXEC dbo.WarnLog_Insert
                   @tenant_id = :tenant_id,
