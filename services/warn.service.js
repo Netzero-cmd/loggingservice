@@ -1,76 +1,119 @@
 import dbWithTables from "../models/index.js";
 import BaseLogService from "./baseLog.service.js";
+import { QueryTypes } from "sequelize";
+
 const { sequelize } = dbWithTables;
 
 export default class WarnService {
+
     static async insert(payload, clientIp) {
         try {
-            const cleanBody = BaseLogService.sanitizeBody(payload.request_body);
-            const cleanRes = BaseLogService.sanitizeBody(payload.response_body);
+            // Validate WARN status codes (200–399)
             if (payload.status_code < 200 || payload.status_code > 399) {
                 throw new Error("Invalid status code for WARN log");
             }
+
+            // Deep sanitization (object/array/nested masking)
+            const cleanReqBody = BaseLogService.sanitizeBody(payload.request_body);
+            const cleanResBody = BaseLogService.sanitizeBody(payload.response_body);
+            const cleanParams = BaseLogService.sanitizeBody(payload.request_params);
+            const cleanQuery = BaseLogService.sanitizeBody(payload.request_query);
+
+            // FIX: Removed trailing comma
             const result = await sequelize.query(
                 `EXEC dbo.WarnLog_Insert
-                  @tenant_id = :tenant_id,
-                  @user_id = :user_id,
-                  @service_name = :service_name,
-                  @action_name = :action_name,
-                  @request_body = :request_body,
-                  @response_body = :response_body,
-                  @message = :message,
-                  @status_code = :status_code,
-                  @client_ip = :client_ip`,
+                    @entity_code    = :entity_code,
+                    @company_code      = :company_code,
+                    @branch_code       = :branch_code,
+                    @user_id         = :user_id,
+                    @service_name    = :service_name,
+                    @action_name     = :action_name,
+                    @request_body    = :request_body,
+                    @request_params  = :request_params,
+                    @request_query   = :request_query,
+                    @response_body   = :response_body,
+                    @status_code     = :status_code,
+                    @warn_message    = :warn_message`,
                 {
                     replacements: {
-                        tenant_id: payload.tenant_id,
+                        entity_code: payload.entity_code,
+                        company_code: payload.company_code,
+                        branch_code: payload.branch_code,
                         user_id: payload.user_id,
                         service_name: payload.service_name,
                         action_name: payload.action_name,
-                        request_body: cleanBody,
-                        response_body: cleanRes,
-                        message: payload.message,
+                        request_body: cleanReqBody,
+                        request_params: cleanParams,
+                        request_query: cleanQuery,
+                        response_body: cleanResBody,
                         status_code: payload.status_code,
-                        client_ip: clientIp
+                        warn_message: payload.warn_message,
                     },
-                    type: sequelize.QueryTypes.SELECT
-                });
+                    type: QueryTypes.SELECT
+                }
+            );
+
             return result?.[0]?.inserted_id || null;
+
         } catch (err) {
-            throw new Error('Error : ' + err.message);
+            throw new Error("Warn log insert failed: " + err.message);
         }
     }
     static async search(filters) {
         try {
-            const result = await sequelize.query(
+            const {
+                entity_code = null,
+                company_code = null,
+                branch_code = null,
+                user_id = null,
+                service_name = null,
+                action_name = null,
+                status_code = null,
+                date_from = null,
+                date_to = null,
+                limit = 50,
+                offset = 0
+            } = filters;
+
+            const replacements = {
+                entity_code,
+                company_code,
+                branch_code,
+                user_id,
+                service_name,
+                action_name,
+                status_code,
+                date_from,
+                date_to,
+                limit: parseInt(limit) || 50,
+                offset: parseInt(offset) || 0
+            };
+
+            const rows = await sequelize.query(
                 `EXEC dbo.WarnLog_Search
-         @tenant_id = :tenant_id,
-         @user_id = :user_id,
-         @service_name = :service_name,
-         @status_code = :status_code,
-         @date_from = :date_from,
-         @date_to = :date_to,
-         @limit = :limit,
-         @offset = :offset`,
+                    @entity_code   = :entity_code,
+                    @company_code    = :company_code,
+                    @branch_code     = :branch_code,
+                    @user_id       = :user_id,
+                    @service_name  = :service_name,
+                    @action_name   = :action_name,
+                    @status_code   = :status_code,
+                    @date_from     = :date_from,
+                    @date_to       = :date_to,
+                    @limit         = :limit,
+                    @offset        = :offset`,
                 {
-                    replacements: {
-                        tenant_id: filters.tenant_id || null,
-                        user_id: filters.user_id || null,
-                        service_name: filters.service_name || null,
-                        status_code: filters.status_code || null,
-                        date_from: filters.date_from || null,
-                        date_to: filters.date_to || null,
-                        limit: filters.limit || 50,
-                        offset: filters.offset || 0
-                    },
-                    type: sequelize.QueryTypes.SELECT
+                    replacements,
+                    type: QueryTypes.SELECT
                 }
             );
 
-            const count = result && result.length > 0 ? result[0].total_count : 0;
-            return { count, logs: result };
+            const count = rows?.length > 0 ? rows[0].total_count : 0;
+
+            return { count, logs: rows };
+
         } catch (err) {
-            throw new Error('Error : ' + err.message);
+            throw new Error("Warn log search failed: " + err.message);
         }
     }
 }

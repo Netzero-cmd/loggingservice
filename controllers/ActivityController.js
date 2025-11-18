@@ -7,17 +7,22 @@ class ActivityController {
         }
         try {
             const result = await ActivityService.getLogsByUserId(userId);
-            res.status(200).json({
-                service_name: result.service_name,
-                action_name: result.action_name,
-                path: result.path,
-                createdAt: result.createdAt,
-                status_code: result.status_code,
-                request_body: result.request_body,
-                response_body: result.response_body,
-                message: result.message,
-                error_message: result.error_message,
-            });
+            if (!result) {
+                res.status(400).send(`No Activity done by this UserId : ${userId}`)
+            }
+            else {
+                res.status(200).json({
+                    service_name: result.service_name,
+                    action_name: result.action_name,
+                    request_body: result.request_body,
+                    response_body: result.response_body,
+                    createdAt: result.createdAt,
+                    status_code: result.status_code,
+                    warn_message: result.warn_message,
+                    error_message: result.error_message,
+                    success_message: result.success_message
+                });
+            }
         } catch (error) {
             console.error("User ID trace error:", error);
             res.status(500).json({ message: "Failed to retrieve request trace due to internal error." });

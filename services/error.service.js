@@ -1,88 +1,112 @@
 import dbWithTables from "../models/index.js";
 import BaseLogService from "./baseLog.service.js";
+import { QueryTypes } from "sequelize";
+
 const { sequelize } = dbWithTables;
 
-
 export default class ErrorService {
-    static async insert(payload, clientIp) {
+    static async insert(payload) {
         try {
-            const cleanBody = BaseLogService.sanitizeBody(payload.request_body);
-            if (payload.status_code < 400 || payload.status_code > 599) {
+            // Validate proper error code (400–599)
+            if (!payload.status_code || payload.status_code < 400 || payload.status_code > 599) {
                 throw new Error("Invalid status code for ERROR log");
             }
+            // Deep sanitize ALL request data
+            const cleanBody = BaseLogService.sanitizeBody(payload.request_body);
+            const cleanParams = BaseLogService.sanitizeBody(payload.request_params);
+            const cleanQuery = BaseLogService.sanitizeBody(payload.request_query);
+
+            // FIX: removed trailing comma from SQL
             const result = await sequelize.query(
                 `EXEC dbo.ErrorLog_Insert
-                @tenant_id = :tenant_id,
-                @user_id = :user_id,
-                @service_name = :service_name,
-                @action_name = :action_name,
-                @error_message = :error_message,
-                @request_body = :request_body,
-                @status_code = :status_code,
-                @client_ip = :client_ip`,
+                    @entity_code = :entity_code,
+                    @company_code = :company_code,
+                    @branch_code = :branch_code,
+                    @user_id = :user_id,
+                    @service_name = :service_name,
+                    @action_name = :action_name,
+                    @request_body = :request_body,
+                    @request_params = :request_params,
+                    @request_query = :request_query,
+                    @status_code = :status_code,
+                    @error_message = :error_message`,
                 {
                     replacements: {
-                        tenant_id: payload.tenant_id,
+                        entity_code: payload.entity_code,
+                        company_code: payload.company_code,
+                        branch_code: payload.branch_code,
                         user_id: payload.user_id,
                         service_name: payload.service_name,
                         action_name: payload.action_name,
-                        error_message: payload.error_message,
                         request_body: cleanBody,
+                        request_params: cleanParams,
+                        request_query: cleanQuery,
                         status_code: payload.status_code,
-                        client_ip: clientIp
+                        error_message: payload.error_message,
                     },
-                    type: sequelize.QueryTypes.SELECT,
+                    type: QueryTypes.SELECT,
                 }
             );
-            return result?.[0]?.inserted_id || null
-        }
-        catch (err) {
-            throw new Error('Error : ' + err.message);
+            return result?.[0]?.inserted_id || null;
+        } catch (err) {
+            throw new Error("Error inserting log: " + err.message);
         }
     }
+
     static async search(filters) {
         try {
             const {
-                tenant_id = null,
+                entity_code = null,
+                company_code = null,
+                branch_code = null,
                 user_id = null,
                 service_name = null,
+                action_name = null,
                 status_code = null,
                 date_from = null,
                 date_to = null,
                 limit = 50,
                 offset = 0,
             } = filters;
-
             const replacements = {
-                tenant_id,
+                entity_code,
+                company_code,
+                branch_code,
                 user_id,
                 service_name,
+                action_name,
                 status_code,
                 date_from,
                 date_to,
-                limit: parseInt(limit, 10) || 50,
-                offset: parseInt(offset, 10) || 0,
+                limit: parseInt(limit) || 50,
+                offset: parseInt(offset) || 0,
             };
             const rows = await sequelize.query(
                 `EXEC dbo.ErrorLog_Search
-                @tenant_id = :tenant_id,
-                @user_id = :user_id,
-                @service_name = :service_name,
-                @status_code = :status_code,
-                @date_from = :date_from,
-                @date_to = :date_to,
-                @limit = :limit,
-                @offset = :offset`,
+                    @entity_code = :entity_code,
+                    @company_code = :company_code,
+                    @branch_code = :branch_code,
+                    @user_id = :user_id,
+                    @service_name = :service_name,
+                    @action_name = :action_name,
+                    @status_code = :status_code,
+                    @date_from = :date_from,
+                    @date_to = :date_to,
+                    @limit = :limit,
+                    @offset = :offset`,
                 {
                     replacements,
-                    type: sequelize.QueryTypes.SELECT,
+                    type: QueryTypes.SELECT,
                 }
             );
-            const count = rows?.length > 0 ? rows[0].total_count : 0;
-            return { count, logs: rows };
-        }
-        catch (err) {
-            throw new Error('Error : ' + err.message);
+            const totalCount = rows?.length > 0 ? rows[0].total_count : 0;
+            return {
+                count: totalCount,
+                logs: rows
+            };
+        } catch (err) {
+            throw new Error("Error searching logs: " + err.message);
         }
     }
+
 }

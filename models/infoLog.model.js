@@ -4,15 +4,18 @@ const sequelize = getSequelize();
 
 const InfoLog = sequelize.define("InfoLog", {
     info_id: { type: DataTypes.BIGINT, primaryKey: true, autoIncrement: true },
-    tenant_id: { type: DataTypes.INTEGER, allowNull: false },
+    entity_code: { type: DataTypes.INTEGER, allowNull: false },
+    company_code: { type: DataTypes.INTEGER, allowNull: false },
+    branch_code: { type: DataTypes.INTEGER, allowNull: false },
     user_id: { type: DataTypes.INTEGER, allowNull: false },
     service_name: DataTypes.STRING(150),
     action_name: DataTypes.STRING(150),
-    path: DataTypes.STRING(255),
     request_body: DataTypes.TEXT,
+    request_params: DataTypes.TEXT,
+    request_query: DataTypes.TEXT,
     response_body: DataTypes.TEXT,
     status_code: DataTypes.INTEGER,
-    client_ip: DataTypes.STRING(50),
+    success_message: DataTypes.TEXT,
 }, {
     timestamps: true,
     createdAt: true,

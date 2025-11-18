@@ -1,56 +1,71 @@
 import dbWithTables from "../models/index.js";
 import BaseLogService from "./baseLog.service.js";
 
-const { sequelize, InfoLog, ErrorLog, WarnLog } = dbWithTables;
+const { InfoLog, ErrorLog, WarnLog } = dbWithTables;
 
 export default class ActivityService {
+
     static async getLogsByUserId(userId) {
-        if (!userId) {
-            throw new Error("User ID is required for tracing.");
-        }
+        if (!userId) throw new Error("User ID is required for tracing.");
         const queryOptions = {
             where: { user_id: userId },
             order: [["createdAt", "DESC"]],
             limit: 1
         };
         try {
-            const [lastInfoLog, lastWarningLog, lastErrorLog] = await Promise.all([
+            // Fetch latest row from each table
+            const [info, warn, error] = await Promise.all([
                 InfoLog.findOne(queryOptions),
                 WarnLog.findOne(queryOptions),
-                ErrorLog.findOne(queryOptions)
+                ErrorLog.findOne(queryOptions),
             ]);
-            const lastLogs = [];
-            if (lastInfoLog) lastLogs.push({ type: "INFO", ...lastInfoLog.get() });
-            if (lastWarningLog) lastLogs.push({ type: "WARNING", ...lastWarningLog.get() });
-            if (lastErrorLog) lastLogs.push({ type: "ERROR", ...lastErrorLog.get() });
-            if (lastLogs.length === 0) return null;
-            lastLogs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-            return lastLogs[0];
-        } catch (error) {
-            console.error("Error finding last user activity across tables:", error);
+            const logs = [];
+
+            if (info) logs.push({ type: "INFO", timestamp: info.createdAt, ...info.get() });
+            if (warn) logs.push({ type: "WARNING", timestamp: warn.createdAt, ...warn.get() });
+            if (error) logs.push({ type: "ERROR", timestamp: error.createdAt, ...error.get() });
+
+            if (logs.length === 0) return null;
+
+            logs.sort((a, b) => b.timestamp - a.timestamp);
+
+            return logs[0];
+
+        } catch (err) {
+            console.error("❌ getLogsByUserId failed:", err);
             throw new Error("Failed to retrieve centralized user activity.");
         }
     }
     static async searchAllLogs(filters = {}) {
         try {
-            const { where, limit = 50, offset = 0, order = [["createdAt", "DESC"]] } = BaseLogService.buildFilters(filters);
-            const [infoLogs, warnLogs, errorLogs] = await Promise.all([
-                InfoLog.findAll({ where, limit, offset, order }),
-                WarnLog.findAll({ where, limit, offset, order }),
-                ErrorLog.findAll({ where, limit, offset, order })
+            let { where, limit = 50, offset = 0, order = [["createdAt", "DESC"]] } =
+                BaseLogService.buildFilters(filters);
+            const MAX_LIMIT = 200;
+            limit = Math.min(limit, MAX_LIMIT);
+
+            // Fetch rows separately — enough rows without slice mistakes
+            const [infoRows, warnRows, errorRows] = await Promise.all([
+                InfoLog.findAll({ where, order }),
+                WarnLog.findAll({ where, order }),
+                ErrorLog.findAll({ where, order }),
             ]);
+
+            // Merge + Tag
             const combined = [
-                ...infoLogs.map(l => ({ type: "INFO", ...l.get() })), ...warnLogs.map(l => ({ type: "WARNING", ...l.get() })), ...errorLogs.map(l => ({ type: "ERROR", ...l.get() }))
+                ...infoRows.map(row => ({ type: "INFO", ...row.get() })),
+                ...warnRows.map(row => ({ type: "WARNING", ...row.get() })),
+                ...errorRows.map(row => ({ type: "ERROR", ...row.get() })),
             ];
             combined.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
             const paginated = combined.slice(offset, offset + limit);
             return {
-                count: combined.length, logs: paginated
+                count: combined.length,
+                logs: paginated
             };
-        } catch (error) {
-            console.error("Centralized log search failed:", error);
+
+        } catch (err) {
+            console.error("❌ Centralized search failed:", err);
             throw new Error("Failed to perform centralized log search.");
         }
     }
-
 }

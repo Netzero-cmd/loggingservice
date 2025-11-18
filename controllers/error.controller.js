@@ -4,7 +4,7 @@ import ErrorService from "../services/error.service.js";
 class ErrorController {
     static async create(req, res) {
         try {
-            const log = await ErrorService.insert(req.body, req.clientIp);
+            const log = await ErrorService.insert(req.body);
             res.status(201).json({ message: "Error log created", id: log });
         } catch (error) {
             console.error("Error log insert error:", error);

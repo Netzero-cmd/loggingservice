@@ -2,7 +2,7 @@ import InfoService from "../services/info.service.js";
 class InfoController {
     static async create(req, res) {
         try {
-            const Info_Id = await InfoService.insert(req.body, req.clientIp);
+            const Info_Id = await InfoService.insert(req.body);
             res.status(201).json({ message: "Info log created", Info_Id: Info_Id });
         } catch (error) {
             console.error("Info log insert error:", error);
