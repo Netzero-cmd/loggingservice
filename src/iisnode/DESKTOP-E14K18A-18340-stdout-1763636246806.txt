@@ -1,0 +1,13 @@
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 📡 add observability to secrets: https://dotenvx.com/ops
+\\.\pipe\3abd0c33-73b4-4b88-8ff7-34700efe0ef4
+db donnected
+Server listening on port \\.\pipe\3abd0c33-73b4-4b88-8ff7-34700efe0ef4 env=development
+✅ Database connection established successfully.
+[0mGET / [32m200[0m 5.207 ms - 22[0m
+✅ InfoLogs table synced.
+[0mGET /favicon.ico [33m404[0m 2.464 ms - 150[0m
+✅ ErrorLogs table synced.
+✅ WarnLogs table synced.
+Database schema synchronization complete.
+[0mGET / [36m304[0m 1.078 ms - -[0m
+[0mGET / [36m304[0m 0.742 ms - -[0m
