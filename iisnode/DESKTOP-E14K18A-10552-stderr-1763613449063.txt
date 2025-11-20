@@ -1,0 +1,14 @@
+Application has thrown an uncaught exception and is terminated:
+Error [ERR_REQUIRE_ASYNC_MODULE]: require() cannot be used on an ESM graph with top-level await. Use import() instead. To see where the top-level await comes from, use --experimental-print-required-tla.
+  From C:\Program Files\iisnode\interceptor.js 
+  Requiring D:\web\Loggingservice\server.js 
+    at ModuleJobSync.runSync (node:internal/modules/esm/module_job:454:13)
+    at ModuleLoader.importSyncForRequire (node:internal/modules/esm/loader:435:47)
+    at loadESMFromCJS (node:internal/modules/cjs/loader:1537:24)
+    at Module._compile (node:internal/modules/cjs/loader:1688:5)
+    at Object..js (node:internal/modules/cjs/loader:1839:10)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
